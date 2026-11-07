@@ -201,11 +201,11 @@ def main():
         if a.cmd == 'refresh':
             print('刷新完成。')
             return
-        u = urlsplit(a.path)
-        if u.scheme or u.netloc or u.fragment or not u.path.startswith('/') or '..' in u.path or '\\' in a.path or u.path.startswith('/1/'):
-            raise RuntimeError('必须提供 /members/me 这样的相对 API 路径，不含 /1 前缀')
-        result = request('https://trello.com/1' + a.path, a.method, request_body, cfg['access_token'])
-        print(json.dumps(result, ensure_ascii=False, indent=2))
+    u = urlsplit(a.path)
+    if u.scheme or u.netloc or u.fragment or not u.path.startswith('/') or '..' in u.path or '\\' in a.path or u.path.startswith('/1/'):
+        raise RuntimeError('必须提供 /members/me 这样的相对 API 路径，不含 /1 前缀')
+    result = request('https://trello.com/1' + a.path, a.method, request_body, cfg['access_token'])
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 if __name__ == '__main__':
     try:

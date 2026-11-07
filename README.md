@@ -12,6 +12,8 @@
 - [opencode-go](opencode-go/SKILL.md)：查询 OpenCode Go 订阅额度使用率与重置时间，不用于模型推理或本地历史成本统计。
 - [trello](trello/SKILL.md)：使用 Trello 查询工作区、看板、列表和卡片，并按用户要求管理卡片、评论、成员和标签。
 
+- [vultr](vultr/SKILL.md)：查询账户流量与账单，完成 OAuth 登录、状态检查及串行刷新。
+
 ## 目录
 
 ```text
@@ -28,14 +30,19 @@
 
 ## 安装
 
-需要 Unix 类系统、Python 3 和 Make。在仓库目录运行：
+需要 Unix 类系统、Python 3 和 Make；Hermes 配置更新还需要 `ruamel.yaml`（在所用 Python 环境运行 `pip install ruamel.yaml`）。在仓库目录运行：
 
 ```bash
 make check            # 检查技能命名与安装目标冲突
-make install          # 安装两个发现入口的逐技能软链接
+make install          # 依次安装 Codex、Claude 和 Hermes
+make install-codex    # 仅安装 ~/.agents/skills 链接
+make install-claude   # 仅安装 ~/.claude/skills 链接
+make install-hermes   # 仅备份并更新 Hermes 配置
 make uninstall        # 仅移除仍指向本仓库技能的链接
-make hermes-config    # 输出 Hermes 配置片段
+make hermes-config    # 备份并更新 Hermes 配置
 ```
+
+`install` 依赖 `check` 和三个安装目标，按顺序执行，即使使用 `make -j` 也不会并行修改配置。安装不是跨客户端事务：后续目标失败时已完成的入口仍保留，修复后重跑即可。`uninstall` 仅卸载两个软链接入口，不删除 Hermes 配置。
 
 重复安装不复制源文件，不覆盖其他技能。已有目标发生冲突时，安装前报错。卸载不删除源文件或无关目标；移除技能目录前应先卸载，避免留下失效链接。仓库搬迁后需清理旧链接并重新安装。
 
@@ -56,17 +63,17 @@ make install AGENTS_DIR=/your/test/agents CLAUDE_DIR=/your/test/claude
 
 ## Hermes
 
-执行 `make hermes-config`，将输出合并到所用 profile 的配置文件中。默认是 `~/.hermes/config.yaml`，例如：
+执行 `make install-hermes`（`make hermes-config` 保留为别名） 会读取 `HERMES_HOME/config.yaml`（默认 `~/.hermes/config.yaml`），将仓库绝对路径加入 `skills.external_dirs`。其他配置值保持，仓库路径去重；重复执行没有变化时不重写、不增加备份。
 
-```yaml
-skills:
-  external_dirs:
-    - /absolute/path/to/this/repository
+其他 profile 或隔离测试可指定：
+
+```bash
+make hermes-config HERMES_CONFIG=/path/to/profile/config.yaml
 ```
 
-保留现有配置，只加入一次仓库路径。不同时加入 `.agents/skills`、`.claude/skills` 或本地同名副本。Hermes 支持外部目录，但项目、本地和 create_dir 中的同名技能具有更高优先级。用 `hermes skills list` 核对结果；必要时重启会话。
+有变化时先在同目录建立 `config.yaml.bak-*` 原始备份，再原子写回。配置和备份权限为 600。使用 `ruamel.yaml` 往返编辑，尽量保留注释、引号、键顺序和列表样式；不能保证字节级不变，部分缩进可能规范化。格式错误、重复键或字段类型异常时拒绝修改。不要在运行命令时用其他编辑器同时保存配置。
 
-外部目录不是写保护机制，Hermes 可原地修改可写文件。需要只读使用时应通过文件权限落实。安装器不会自动修改 YAML 或接管 Hermes 内置技能目录。
+只加入一次仓库路径，不同时加入 `.agents/skills`、`.claude/skills` 或本地同名副本。Hermes 的项目、本地及 create_dir 中的同名技能可能遮蔽外部技能，用 `hermes skills list` 核对结果。外部目录不是写保护机制。
 
 ## 身份信息
 

@@ -90,3 +90,5 @@ python3 scripts/trello.py card delete CARD_ID
 
 board/list 同样支持 archive、unarchive。其他接口仍通过 api 调用。封装不额外提升 OAuth 权限。
 建议先验证只读命令，再在专用测试看板上验证所需写操作。
+
+认证更新使用本机排他锁：login 与 refresh 的读取、token 交换和加密写回串行执行。业务 API 请求及结果输出在释放锁后执行，不占用凭证锁。
