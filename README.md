@@ -6,16 +6,16 @@
 
 ## 技能
 
-- [dev-flow](dev-flow/SKILL.md)：显式调用的开发流程，追踪需求、设计、任务、测试与审查。
-- [yt-dlp](yt-dlp/SKILL.md)：下载视频、音频与字幕，诊断下载环境和站点问题。
-
 - [amap](amap/SKILL.md)：使用高德地图查询地址坐标、搜索地点，以及规划驾车、公交或步行路线。
+- [coingecko](coingecko/SKILL.md)：查询加密货币价格、市值排行与币种详情。
+- [dev-flow](dev-flow/SKILL.md)：显式调用的开发流程，追踪需求、设计、任务、测试与审查。
 - [falai](falai/SKILL.md)：通过 fal.ai 查找模型、提交和跟踪媒体推理任务、取得结果或查询账户 credits。
+- [github](github/SKILL.md)：通过 GPG 凭证包装器使用 gh，查询和管理 GitHub 仓库、Issue、PR、Actions 与 Release。
 - [mastodon](mastodon/SKILL.md)：连接 Mastodon 实例，读取时间线、搜索帖子、查看通知，以及按用户要求发布或回复。
 - [opencode-go](opencode-go/SKILL.md)：查询 OpenCode Go 订阅额度使用率与重置时间，不用于模型推理或本地历史成本统计。
 - [trello](trello/SKILL.md)：使用 Trello 查询工作区、看板、列表和卡片，并按用户要求管理卡片、评论、成员和标签。
-
 - [vultr](vultr/SKILL.md)：查询账户流量与账单，完成 OAuth 登录、状态检查及串行刷新。
+- [yt-dlp](yt-dlp/SKILL.md)：下载视频、音频与字幕，诊断下载环境和站点问题。
 
 ## 目录
 
