@@ -1,10 +1,13 @@
 # Skills
 
-一套供 Codex、Claude Code、OpenCode 和 Hermes 使用的共享技能仓库。目标是提供可执行的操作说明与工具，为 AI 助手建立可用的服务连接环境。
+一套供 Codex、Claude Code、OpenCode 和 Hermes 使用的共享技能仓库。目标是提供可执行的操作说明与工具，为 AI 助手提供服务连接、开发流程和媒体处理环境。
 
 技能源文件在本仓库维护，客户端通过软链接或外部目录发现；身份信息独立保存在 GPG 文件中。架构与维护约定见 [AGENTS.md](AGENTS.md)。
 
 ## 技能
+
+- [dev-flow](dev-flow/SKILL.md)：显式调用的开发流程，追踪需求、设计、任务、测试与审查。
+- [yt-dlp](yt-dlp/SKILL.md)：下载视频、音频与字幕，诊断下载环境和站点问题。
 
 - [amap](amap/SKILL.md)：使用高德地图查询地址坐标、搜索地点，以及规划驾车、公交或步行路线。
 - [falai](falai/SKILL.md)：通过 fal.ai 查找模型、提交和跟踪媒体推理任务、取得结果或查询账户 credits。
@@ -39,7 +42,6 @@ make install-codex    # 仅安装 ~/.agents/skills 链接
 make install-claude   # 仅安装 ~/.claude/skills 链接
 make install-hermes   # 仅备份并更新 Hermes 配置
 make uninstall        # 仅移除仍指向本仓库技能的链接
-make hermes-config    # 备份并更新 Hermes 配置
 ```
 
 `install` 依赖 `check` 和三个安装目标，按顺序执行，即使使用 `make -j` 也不会并行修改配置。安装不是跨客户端事务：后续目标失败时已完成的入口仍保留，修复后重跑即可。`uninstall` 仅卸载两个软链接入口，不删除 Hermes 配置。
@@ -63,21 +65,23 @@ make install AGENTS_DIR=/your/test/agents CLAUDE_DIR=/your/test/claude
 
 ## Hermes
 
-执行 `make install-hermes`（`make hermes-config` 保留为别名） 会读取 `HERMES_HOME/config.yaml`（默认 `~/.hermes/config.yaml`），将仓库绝对路径加入 `skills.external_dirs`。其他配置值保持，仓库路径去重；重复执行没有变化时不重写、不增加备份。
+执行 `make install-hermes` 会读取 `HERMES_HOME/config.yaml`（默认 `~/.hermes/config.yaml`），将仓库绝对路径加入 `skills.external_dirs`。其他配置值保持，仓库路径去重；重复执行没有变化时不重写、不增加备份。
 
 其他 profile 或隔离测试可指定：
 
 ```bash
-make hermes-config HERMES_CONFIG=/path/to/profile/config.yaml
+make install-hermes HERMES_CONFIG=/path/to/profile/config.yaml
 ```
 
 有变化时先在同目录建立 `config.yaml.bak-*` 原始备份，再原子写回。配置和备份权限为 600。使用 `ruamel.yaml` 往返编辑，尽量保留注释、引号、键顺序和列表样式；不能保证字节级不变，部分缩进可能规范化。格式错误、重复键或字段类型异常时拒绝修改。不要在运行命令时用其他编辑器同时保存配置。
 
 只加入一次仓库路径，不同时加入 `.agents/skills`、`.claude/skills` 或本地同名副本。Hermes 的项目、本地及 create_dir 中的同名技能可能遮蔽外部技能，用 `hermes skills list` 核对结果。外部目录不是写保护机制。
 
+Hermes 安装在目标配置目录不存在或当前 Python 缺少 `ruamel.yaml` 时，说明原因并正常跳过（退出码 0），不创建目录或修改配置；显式指定 `HERMES_CONFIG` 时检查该配置所在目录。已包含唯一仓库路径的配置不再次写回，也不重复备份。
+
 ## 身份信息
 
-所有技能统一读取 `~/.config/agent/auth/<service>.json.gpg`。由操作者创建目录，或把 `auth` 目录软链接到其管理的实际位置。凭证不随 skills 安装，不进入 Git。
+需要服务凭证的技能统一读取 `~/.config/agent/auth/<service>.json.gpg`。由操作者创建目录，或把 `auth` 目录软链接到其管理的实际位置。凭证不随 skills 安装，不进入 Git。
 
 直接采用 GPG 加密 JSON，便于用 Emacs 透明编辑。操作者完成注册、权限选择和授权；技能脚本内部使用凭证。各服务的字段和初始化方式由对应技能说明。自动刷新与手动编辑不能同时无协调地写同一文件。
 

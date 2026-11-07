@@ -1,3 +1,7 @@
+import contextlib
+import io
+import subprocess
+import sys
 import importlib.util
 import os
 from pathlib import Path
@@ -38,6 +42,31 @@ class InstallerTests(unittest.TestCase):
                 i.hermes_config()
                 self.assertEqual(target.stat().st_mtime_ns, before)
                 self.assertEqual(list(Path(tmp).glob('config.yaml.bak-*')), backups)
+
+    def test_missing_directory_skips_without_creating_it(self):
+        with tempfile.TemporaryDirectory(prefix='hermes-test-') as tmp:
+            home = Path(tmp) / 'absent'
+            with patch.dict(os.environ, HERMES_HOME=str(home), HERMES_CONFIG=''):
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output):
+                    i.hermes_config()
+                self.assertIn('config directory does not exist', output.getvalue())
+                self.assertFalse(home.exists())
+
+    def test_missing_dependency_exits_successfully_without_changes(self):
+        with tempfile.TemporaryDirectory(prefix='hermes-test-') as tmp:
+            config = Path(tmp) / 'config.yaml'
+            config.write_text('model: example\n')
+            before = config.stat()
+            # -S disables site-packages, including the test environment's ruamel.
+            env = dict(os.environ, HERMES_CONFIG=str(config), PYTHONPATH='')
+            result = subprocess.run([sys.executable, '-S', str(i.ROOT / 'scripts/install.py'),
+                                     'install-hermes'], env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn('ruamel.yaml is not installed', result.stdout)
+            self.assertEqual(config.read_text(), 'model: example\n')
+            self.assertEqual(config.stat().st_mtime_ns, before.st_mtime_ns)
+            self.assertEqual(list(Path(tmp).iterdir()), [config])
 
     def test_invalid_config_untouched(self):
         for content in ('skills: []', 'skills:\n  external_dirs: value', 'a: 1\na: 2', '[broken'):

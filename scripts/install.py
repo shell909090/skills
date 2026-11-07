@@ -38,19 +38,22 @@ def same_link(dest, source):
 
 
 def hermes_config():
+    default = Path(os.environ.get('HERMES_HOME') or str(Path.home() / '.hermes')) / 'config.yaml'
+    path = Path(os.environ.get('HERMES_CONFIG') or default).expanduser().resolve()
+    if not path.parent.is_dir():
+        print(f'Skipping Hermes installation: config directory does not exist: {path.parent}')
+        return
     try:
         from ruamel.yaml import YAML
         from ruamel.yaml.error import YAMLError
         from ruamel.yaml.comments import CommentedMap, CommentedSeq
     except ImportError:
-        raise ValueError('install-hermes requires ruamel.yaml: pip install ruamel.yaml')
+        print('Skipping Hermes installation: ruamel.yaml is not installed in this Python environment; install it with pip install ruamel.yaml')
+        return
     yaml = YAML(typ='rt')
     yaml.preserve_quotes = True
     yaml.allow_duplicate_keys = False
     yaml.width = 4096
-    default = Path(os.environ.get('HERMES_HOME') or str(Path.home() / '.hermes')) / 'config.yaml'
-    path = Path(os.environ.get('HERMES_CONFIG') or default).expanduser().resolve()
-    path.parent.mkdir(parents=True, exist_ok=True)
     fd = os.open(str(path) + '.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     try:
         fcntl.flock(fd, fcntl.LOCK_EX)
@@ -117,9 +120,9 @@ def hermes_config():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['check', 'install', 'install-codex', 'install-claude', 'install-hermes', 'uninstall', 'hermes-config'])
+    parser.add_argument('action', choices=['check', 'install', 'install-codex', 'install-claude', 'install-hermes', 'uninstall'])
     action = parser.parse_args().action
-    if action in ('hermes-config', 'install-hermes'):
+    if action == 'install-hermes':
         hermes_config()
         return
     sources = skills()

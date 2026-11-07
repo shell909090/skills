@@ -25,7 +25,9 @@
 
 在当前 Hermes profile 的 `config.yaml` 中，将本仓库绝对路径加入 `skills.external_dirs` 一次。默认 profile 配置位于 `~/.hermes/config.yaml`。不要同时加入上述两个软链接入口，也不要在 Hermes 本地目录再安装同名副本。
 
-Hermes 外部目录是可读来源，不是只读安全边界；它可以原地修改可写技能。其项目级、本地及 create_dir 中的同名技能可遮蔽外部目录技能。保持名称不冲突，安装后核对列表。`make install-hermes`（兼容别名 `hermes-config`）使用 ruamel.yaml 往返编辑当前配置，先备份原始内容，再原子写回；保留其他设置，尽量保留注释、引号和布局，但不承诺字节级不变。可用 HERMES_CONFIG 指定 profile 配置路径。
+Hermes 外部目录是可读来源，不是只读安全边界；它可以原地修改可写技能。其项目级、本地及 create_dir 中的同名技能可遮蔽外部目录技能。保持名称不冲突，安装后核对列表。`make install-hermes`使用 ruamel.yaml 往返编辑当前配置，先备份原始内容，再原子写回；保留其他设置，尽量保留注释、引号和布局，但不承诺字节级不变。可用 HERMES_CONFIG 指定 profile 配置路径。
+
+Hermes 安装在目标配置目录不存在或当前 Python 缺少 `ruamel.yaml` 时，说明原因并正常跳过（退出码 0），不创建目录或修改配置；显式指定 `HERMES_CONFIG` 时检查该配置所在目录。已包含唯一仓库路径的配置不再次写回，也不重复备份。
 
 ## 身份与临时数据
 
