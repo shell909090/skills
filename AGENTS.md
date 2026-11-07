@@ -8,6 +8,10 @@
 
 仓库根目录的 `scripts/` 是安装工具，不是技能。不要把凭证、账户实际输出、运行日志或临时文件提交到仓库。脚本资源通过技能自身位置定位，不依赖仓库克隆位置或调用者工作目录。
 
+## 脚本调用
+
+Python 和 Node.js 脚本统一不设置执行位：Python 使用 `python3 /技能路径/scripts/example.py`，Node.js 使用 `node /技能路径/scripts/example.js`。SKILL.md、参考文档及外部任务中的调用保持一致，不依赖 shebang 直接执行或临时 chmod 加执行位。由专用工具加载的 JavaScript 资源（如 playwright-cli 的 run-code）按该工具接口使用，同样不设置执行位。Shell 包装器不属于此约定，保留其既有权限和调用方式。Makefile 使用 `$(PYTHON)` 调用安装器，默认 `python3`。
+
 ## 安装与发现
 
 `make install` 依次执行 `install-codex`、`install-claude`、`install-hermes`，也可单独运行各目标。前两个目标为每个技能建立对应目录软链接：
