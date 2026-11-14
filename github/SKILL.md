@@ -1,6 +1,6 @@
 ---
 name: github
-description: 通过 GPG 凭证包装器使用 GitHub CLI，查询仓库、Issue、Pull Request、Actions 和 Release，并执行用户授权的管理操作。
+description: 通过 GPG 凭证包装器使用 GitHub CLI，查询仓库、Issue、Pull Request、Actions、Release 和 Dependabot 漏洞提醒，并执行用户授权的管理操作。
 ---
 
 # GitHub
@@ -19,11 +19,13 @@ description: 通过 GPG 凭证包装器使用 GitHub CLI，查询仓库、Issue�
 scripts/github.sh --version
 scripts/github.sh repo view OWNER/REPO
 scripts/github.sh issue list --repo OWNER/REPO --limit 30
+scripts/github.sh dependabot list --repo OWNER/REPO
+scripts/github.sh dependabot view 2 --repo OWNER/REPO
 ```
 
 将 OWNER/REPO 替换为用户指定或当前项目确认的仓库。先用只读查询确认目标，再执行用户授权的写操作；创建 Issue、评论、PR 或发布 Release 都属于外部写入。
 
-保留原有顶层命令白名单：`repo issue pr run workflow release search status label discussion ruleset attestation`。具体命令是否存在取决于所安装的 gh 版本。不要绕过白名单改用裸 gh、`api` 或扩展。
+顶层命令白名单：`repo issue pr run workflow release search status label discussion ruleset attestation api dependabot`。具体命令是否存在取决于所安装的 gh 版本。不要绕过白名单改用裸 gh 或扩展。
 
 需要正文时显式使用 `--body` 或 `--body-file`；长正文使用临时文件，放在系统临时目录的独立任务目录中，结束后清理。参数正确引用，不把用户输入拼接为 shell 代码。
 
