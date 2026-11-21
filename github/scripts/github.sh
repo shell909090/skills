@@ -9,9 +9,20 @@ if (($# == 0)); then
   exit 2
 fi
 
+git_fetch=false
+
 case "$1" in
   --help|-h|--version)
     exec gh "$@"
+    ;;
+  fetch)
+    if [[ $# != 4 || $2 != --repo || ! $3 =~ ^[A-Za-z0-9_-]+/[A-Za-z0-9_.-]+$ || ${3#*/} == . || ${3#*/} == .. ]]; then
+      printf '%s\n' 'Usage: github.sh fetch --repo OWNER/REPO BRANCH (run in local repository)' >&2
+      exit 2
+    fi
+    git check-ref-format "refs/heads/$4" >/dev/null || exit 2
+    git_fetch=true
+    set -- fetch --no-tags --no-recurse-submodules "https://github.com/$3.git" "refs/heads/$4"
     ;;
   dependabot)
     shift
@@ -101,5 +112,10 @@ export EDITOR=false
 export GH_BROWSER=false
 export BROWSER=false
 unset GITHUB_TOKEN GH_ENTERPRISE_TOKEN GITHUB_ENTERPRISE_TOKEN
+
+if $git_fetch; then
+  export GIT_TERMINAL_PROMPT=0
+  exec git -c credential.helper= -c 'credential.helper=!gh auth git-credential' "$@"
+fi
 
 exec gh "$@"

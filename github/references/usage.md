@@ -12,7 +12,7 @@
 
 ```text
 repo issue pr run workflow release search status
-label discussion ruleset attestation api dependabot
+label discussion ruleset attestation api dependabot fetch
 ```
 
 其他顶层命令默认拒绝，尤其包括 `auth`、`alias`、`extension`、`config`、`secret`、`variable`、`ssh-key`、`gpg-key` 和 `codespace`。
@@ -74,6 +74,12 @@ scripts/github.sh dependabot update 2 --repo OWNER/REPO --state open
 列表默认查询 open，`--state all` 查询全部状态；内部使用 `gh api --paginate` 获取所有分页，输出各页 JSON 数组。需要合并时可配合 `jq -s 'add // []'`，并启用 `set -o pipefail` 保留 API 失败退出码。单条查询输出 JSON 对象。修改使用 PATCH，字段取值和读写权限由 GitHub 服务端判定。也可通过包装器的 `api` 命令直接使用 gh 原生参数。
 
 Fine-grained PAT 需要目标仓库的 **Dependabot alerts** 权限，查询需要 read，修改需要 write；由服务端决定操作是否获准。仓库可读不代表提醒可读；若返回 403 `Resource not accessible by personal access token`，检查该项权限。
+
+## Git 拉取认证
+
+在目标本地仓库执行 `scripts/github.sh fetch --repo OWNER/REPO BRANCH`。包装器用自身加载的 `GH_TOKEN`，通过进程级 `gh auth git-credential` helper 执行 HTTPS `git fetch`，不依赖 SSH 密钥、不写入 credential 配置、不输出 token。结果提交保存在 FETCH_HEAD；本地关系检查及 `git merge --ff-only FETCH_HEAD` 不需要网络认证。只允许 github.com，仓库和分支必须显式给出。网络调用方应设置超时，失败时检查退出码。
+
+内部 credential helper 的 auth 调用只供 Git 通过管道取得认证；包装器仍拒绝用户直接调用 `auth`。
 
 ## 权限
 
